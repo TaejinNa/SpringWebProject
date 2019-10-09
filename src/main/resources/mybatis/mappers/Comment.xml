@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+      PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="mapper.comment">
+	<select id="listComment" parameterType="com.spring.study.model.comments.CommentParam" resultType="com.spring.study.model.comments.Comment">
+		SELECT   A.*
+        FROM      (
+                      SELECT    
+                                B.*
+                     FROM     (
+                                SELECT   ROW_NUMBER() OVER(PARTITION BY C.ARTICLE_ID  ORDER BY C.COMMENT_ID DESC) AS RANK_NUMBER
+                                        , LEVEL AS LVL
+                                        , C.ARTICLE_ID
+                                        , C.COMMENT_ID
+                                        , C.PARENT_ID
+                                        , C.WRITE_MEMBER_ID
+                                        , C.SECRET_TYPE_CD
+                                        , C.WRITE_DATE
+                                        ,CASE   
+                                             WHEN (C.WRITE_MEMBER_ID != #{userId} AND D.WRITE_MEMBER_ID != #{userId}) AND SECRET_TYPE_CD = '10' THEN NULL
+                                             <!-- WHEN D.WRITE_MEMBER_ID != #{userId} AND SECRET_TYPE_CD = '10' THEN 'NULL' -->
+                                             ELSE  C.CONTENT
+                                         END AS CONTENT
+                                FROM           COMMENT_TB C
+                                INNER   JOIN   ARTICLE_TB D
+                                ON C.ARTICLE_ID = D.ARTICLE_ID
+                                WHERE    C.ARTICLE_ID in (
+                                                            SELECT regexp_substr(#{articleId}, '[^,]+', 1, LEVEL)
+                                                            FROM DUAL
+                                                            CONNECT BY LEVEL &lt;= length(regexp_replace(#{articleId}, '[^,]+', '')) + 1
+                                                        ) 
+                                CONNECT BY
+                                         PRIOR C.ARTICLE_ID   = C.PARENT_ID 
+                              ) B
+                    WHERE  B.RANK_NUMBER &lt;= #{endNum}
+                              
+                 ) A    
+        WHERE  A.RANK_NUMBER &gt;= #{startNum}
+	
+	
+	</select>
+	<!-- 페이징 전 쿼리 -->
+	<select id="listCommentNotPaging" parameterType="String" resultType="articleReplyVo">
+		SELECT
+  	    		  A.*
+		FROM      (
+  	                  SELECT	 LEVEL AS LVL
+        	                   , ARTICLE_ID
+            	        	   , COMMENT_ID
+	                           , PARENT_ID
+                    		   , CONTENT
+	                           , WRITE_MEMBER_ID
+	                           , SECRET_CHK_FLAG
+    	               
+        	   		  FROM     COMMENT_TB
+       				  WHERE    ARTICLE_ID in (
+	       										SELECT regexp_substr(#{articleId}, '[^,]+', 1, LEVEL)
+												FROM DUAL
+												CONNECT BY LEVEL &lt;= length(regexp_replace(#{articleId}, '[^,]+', '')) + 1
+       			 						     )
+            		START WITH
+                			    PARENT_ID           = 0 
+            		CONNECT BY
+            	    		    PRIOR ARTICLE_ID    = PARENT_ID 
+	            	ORDER SIBLINGS BY
+    	            		    ARTICLE_ID DESC
+       			 ) A
+		<!-- WHERE   rNum BETWEEN (#{pageNum}-1)*10+1   AND (#{pageNum}-1)*10+10  -->
+	
+	
+	</select>
+	
+	<select id="listComment2" parameterType="String" resultType="articleReplyVo">
+	SELECT
+  	    		  A.*
+			FROM    (
+  	          SELECT	ROWNUM as rNum
+    	                ,LEVEL AS LVL
+        	            , ARTICLE_ID
+            	        , COMMENT_ID
+                	    , PARENT_ID
+                    	, CONTENT
+	                    , WRITE_MEMBER_ID
+	                    ,SECRET_TYPE_CD
+    	               
+        	    FROM    COMMENT_TB
+            	START WITH
+                	    PARENT_ID           = 0 
+            	CONNECT BY
+            	        PRIOR ARTICLE_ID    = PARENT_ID 
+	            ORDER SIBLINGS BY
+    	                ARTICLE_ID DESC
+       			 ) A
+       			 WHERE ARTICLE_ID = #{articleId}
+	</select>
+	
+	<insert id="isExistComment">
+		SELECT	 NVL(MIN('Y'), 'N')
+		FROM 	DUAL
+		WHERE	1			= 1
+		AND		EXISTS
+				(
+					SELECT 
+							1
+					FROM	COMMENT_TB
+					WHERE	
+							COMMENT_ID = #{commentId}
+				)
+	</insert>
+	
+	<insert id="insertComment" parameterType="articleReplyVo">
+		INSERT INTO COMMENT_TB
+		(
+			COMMENT_ID
+			,ARTICLE_ID
+			,PARENT_ID
+			,CONTENT
+			,WRITE_MEMBER_ID
+			,SECRET_TYPE_CD
+			,WRITE_DATE
+			
+		)
+		VALUES
+		(
+		 	 COMMENT_SEQ.NEXTVAL
+		 	 ,#{articleId}
+			 ,#{parentId}
+			 ,#{content}
+			 ,#{writeMemberId}
+			 ,#{secretTypeCd}
+			 ,SYSDATE
+			
+		)
+	
+	</insert>
+	
+	<select id="totalComments" parameterType="com.spring.study.model.comments.CommentParam" resultType="articleReplyVo">
+        SELECT
+                COUNT(1) AS TOTAL_COUNT
+        FROM    COMMENT_TB
+        WHERE    ARTICLE_ID in (
+	                               SELECT regexp_substr(#{articleId}, '[^,]+', 1, LEVEL)
+	                               FROM DUAL
+	                               CONNECT BY LEVEL &lt;= length(regexp_replace(#{articleId}, '[^,]+', '')) + 1
+                              )    
+        GROUP BY ARTICLE_ID
+    </select>
+	
+</mapper>
