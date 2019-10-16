@@ -258,7 +258,7 @@ public class NewArticleController {
 			articleService.deleteArticle(articleId);
 		} catch (DataIntegrityViolationException e) {
 			resultMap.put("code", HttpStatus.CONFLICT);
-			resultMap.put("msg", "댓글이 달린 글은 삭제할 수 없습니다.");
+			resultMap.put("msg", "댓글이 달린 글은 삭제할 수 없습니다. ");
 		} catch (NotFoundException e) {
 			resultMap.put("code", HttpStatus.NOT_FOUND.value());
 			resultMap.put("msg", e.getMessage());
