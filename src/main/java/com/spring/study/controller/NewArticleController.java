@@ -147,7 +147,7 @@ public class NewArticleController {
 			resultMap.put("article", Collections.EMPTY_MAP);
 		} catch (Exception e) {
 			resultMap.put("code", HttpStatus.SERVICE_UNAVAILABLE.value());
-			resultMap.put("msg","�븣 �닔 �뾾�뒗 �삤瑜� 諛쒖깮");
+			resultMap.put("msg","알 수 없는 오류 발생");
 			resultMap.put("article", Collections.EMPTY_MAP);
 			e.printStackTrace();
 		}
@@ -175,7 +175,7 @@ public class NewArticleController {
 			e.printStackTrace();
 		} catch (Exception e) {
 			resultMap.put("code", HttpStatus.SERVICE_UNAVAILABLE.value());
-			resultMap.put("msg","�븣 �닔 �뾾�뒗 �삤瑜� 諛쒖깮");
+			resultMap.put("msg","알 수 없는 오류 발생");
 			e.printStackTrace();
 		}
 		return resultMap;
@@ -187,7 +187,7 @@ public class NewArticleController {
 		
 		if(Article.checkId(articleDto.getArticleId())) { 
 			resultMap.put("code", HttpStatus.BAD_REQUEST.value());
-			resultMap.put("msg", "�엯�젰 媛믪씠 �삱諛붾Ⅴ吏� �븡�뒿�땲�떎. �떎�떆 �솗�씤 �빐二쇱꽭�슂.");
+			resultMap.put("msg", "입력 값이 올바르지 않습니다. 다시 확인 해주세요.");
 			return resultMap;
 		}	
 		
@@ -203,7 +203,7 @@ public class NewArticleController {
 			resultMap.put("msg", e.getMessage());
 		} catch (Exception e) {
 			resultMap.put("code", HttpStatus.SERVICE_UNAVAILABLE.value());
-			resultMap.put("msg", "�븣 �닔 �뾾�뒗 �삤瑜섍� 諛쒖깮 �뻽�뒿�땲�떎. �떎�떆 �떆�룄 �빐二쇱꽭�슂");
+			resultMap.put("msg", "알 수 없는 오류가 발생 했습니다. 다시 시도 해주세요");
 			e.printStackTrace();
 		}
 
@@ -216,20 +216,20 @@ public class NewArticleController {
 		
 		if(!user.isLogon()) {
 			resultMap.put("code", HttpStatus.FORBIDDEN);
-			resultMap.put("msg", "濡쒓렇�씤 �꽭�뀡 留뚮즺");
+			resultMap.put("msg", "로그인 세션 만료");
 			return resultMap;
 		}
 		
 		if(!Article.checkId(articleDto.getArticleId())) { 
 			resultMap.put("code", HttpStatus.BAD_REQUEST.getReasonPhrase());
-			resultMap.put("msg", "�옒紐삳맂 �슂泥��엯�땲�떎.");
+			resultMap.put("msg", "잘못된 요청입니다.");
 			return resultMap;
 		}
 		
 		Article article = articleService.getWriterId(articleDto.getArticleId());
 		if(!article.checkUserId(user.getUserId())) {
 			resultMap.put("code", HttpStatus.FORBIDDEN.getReasonPhrase());
-			resultMap.put("msg", "�옉�꽦�옄留� �닔�젙 媛��뒫�빀�땲�떎.");
+			resultMap.put("msg", "작성자만 수정 가능합니다.");
 			return resultMap;
 		}
 		
@@ -258,7 +258,7 @@ public class NewArticleController {
 			articleService.deleteArticle(articleId);
 		} catch (DataIntegrityViolationException e) {
 			resultMap.put("code", HttpStatus.CONFLICT);
-			resultMap.put("msg", "�뙎湲��씠 �떖由� 湲��� �궘�젣�븷 �닔 �뾾�뒿�땲�떎.");
+			resultMap.put("msg", "댓글이 달린 글은 삭제할 수 없습니다.");
 		} catch (NotFoundException e) {
 			resultMap.put("code", HttpStatus.NOT_FOUND.value());
 			resultMap.put("msg", e.getMessage());
