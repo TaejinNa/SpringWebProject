@@ -35,7 +35,7 @@ public class CacheInSessionAspect {
 		HttpServletResponse res = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getResponse();
 		HttpSession session = req.getSession();
 		Object returnObject;
-
+		// Vo 수정해야함
 		String cacheKey = target.name();
 		final String type = target.type();
 		Class c = Class.forName(type);
