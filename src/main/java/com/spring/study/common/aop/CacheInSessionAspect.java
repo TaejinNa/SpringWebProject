@@ -36,7 +36,6 @@ public class CacheInSessionAspect {
 		HttpSession session = req.getSession();
 		Object returnObject;
 
-		// null -> new String[0]; 등 예외처리는 나중에. 일단 구현부터.
 		String cacheKey = target.name();
 		final String type = target.type();
 		Class c = Class.forName(type);
@@ -66,7 +65,6 @@ public class CacheInSessionAspect {
 			}
 		}
 
-		// TODO 없으면 수행 후 세션에 담고 -> 그거 리턴
 		returnObject = joinPoint.proceed();
 		String ttl = target.ttl();
 		Date expireTime = DateUtils.addSeconds(curDate, Integer.parseInt(ttl));
